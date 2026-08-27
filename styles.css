@@ -29,3 +29,25 @@ main{padding:16px 16px 105px}.view{display:none}.view.active{display:block}
 .shop-now:after{content:"";position:absolute;width:90px;height:220%;right:22%;top:-60%;background:rgba(255,255,255,.08);transform:rotate(25deg)}
 .shop-now>span:first-child{font-size:29px}.shop-now>span:nth-child(2){font-size:20px;font-weight:1000;letter-spacing:-.5px;line-height:1.05;flex:1}.shop-now small{display:block;font-size:9px;letter-spacing:1.4px;color:#bbb;margin-bottom:4px}.shop-now b{font-size:25px}
 .more-shop{width:100%;margin-top:13px;border:1px solid #111;background:#fff;color:#111;border-radius:15px;padding:13px 16px;font-weight:1000;display:flex;justify-content:center;gap:10px}
+
+/* V4.2 — Daily Drop + department navigation + interaction polish */
+.drop-wrap{margin-bottom:14px}
+.envelope{width:100%;min-height:185px;border:0;border-radius:24px;background:linear-gradient(145deg,#f4ead4,#fff9ed);border:1px solid #d8c7a5;box-shadow:0 16px 38px rgba(0,0,0,.10);position:relative;overflow:hidden;padding:22px;text-align:center;transition:.25s}
+.envelope:active{transform:scale(.985)}
+.env-icon{font-size:58px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.12));animation:envbob 2.1s ease-in-out infinite}
+.env-kicker{font-size:10px;font-weight:1000;letter-spacing:1.7px;color:#8d7857;margin-top:5px}
+.env-title{font-size:27px;font-weight:1000;letter-spacing:-.8px;margin-top:2px}
+.env-copy{font-size:13px;color:#776b59;margin-top:4px}
+@keyframes envbob{50%{transform:translateY(-5px) rotate(1deg)}}
+.drop-reveal{border-radius:24px;padding:22px;background:#111;color:#fff;text-align:center;overflow:hidden;position:relative;animation:popin .38s cubic-bezier(.2,.9,.25,1.25)}
+.drop-reveal .amount{font-size:58px;font-weight:1000;letter-spacing:-3px;margin:4px 0}.drop-reveal small{letter-spacing:1.6px;font-weight:900;color:#aaa}.drop-reveal .rarity{font-weight:900;margin-top:4px}
+.drop-reveal.big{background:linear-gradient(135deg,#111,#4a3211)}
+.drop-reveal.jackpot{background:linear-gradient(135deg,#111,#6c4311);box-shadow:0 0 0 2px #d6aa56 inset,0 18px 45px rgba(0,0,0,.25)}
+.drop-reveal.jackpot:after{content:"✦  ✨  ✦  ✨  ✦";position:absolute;left:0;right:0;top:14px;font-size:20px;animation:spark 1s ease-in-out infinite alternate}
+@keyframes spark{to{transform:translateY(5px);opacity:.55}}@keyframes popin{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:scale(1)}}
+.claimed-note{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 13px;margin-bottom:12px;font-size:12px;color:#777}.claimed-note b{color:#111}
+.department-wrap{margin:2px 0 14px}.department-title{font-size:13px;font-weight:950;margin:5px 0 8px}.departments{display:flex;gap:8px;overflow:auto;padding-bottom:8px}.departments::-webkit-scrollbar,.subcats::-webkit-scrollbar{display:none}
+.dept{border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 12px;white-space:nowrap;font-weight:900;font-size:13px}.dept.active{background:#111;color:#fff}
+.subcats{display:flex;gap:7px;overflow:auto;min-height:0}.subcat{border:0;background:#ecece8;border-radius:999px;padding:8px 11px;white-space:nowrap;font-size:12px;font-weight:850}.subcat.active{background:#333;color:#fff}
+.fly{position:fixed;z-index:100;pointer-events:none;font-size:30px;animation:flybag .65s ease-in forwards}@keyframes flybag{to{transform:translate(110px,-110px) scale(.35);opacity:0}}
+.bump{animation:bump .32s ease}@keyframes bump{50%{transform:scale(1.18)}}

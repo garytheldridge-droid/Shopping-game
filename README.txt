@@ -1,39 +1,16 @@
-SHOPPING GAME V4.1
+SHOPPING GAME V4.2
 
-Home-flow update: prominent START SHOPPING CTA, Trending, Quests, More for you, and another endless-shop CTA. Existing feed-ready V4 architecture retained.
+Interaction/game-feel update:
+- Daily money now arrives as a tappable envelope.
+- First-ever envelope gives the £2,500 welcome fund.
+- Subsequent daily drops are weighted: £100 (40%), £150 (25%), £200 (15%), £250 (10%), £300 (6%), £400 (3%), £500 (1%).
+- The day's result is stored before opening, so refreshing cannot reroll it.
+- Bigger drops get bigger reveal treatment.
+- Balance counts upward when the envelope opens.
+- After collection, the envelope disappears and leaves only a small collected status.
+- Added department navigation: Fashion, Tech, Home, Beauty, Gaming, Sports, Toys, Cars, Holidays and Luxury.
+- Added subcategory UI ready for real affiliate feed mapping.
+- Basket feedback made punchier.
+- V4.1 home flow and feed-ready catalogue architecture retained.
 
-SHOPPING GAME V4 — FEED-READY PROTOTYPE
-
-What V4 changes:
-- Catalogue is no longer hard-coded into the UI.
-- Products are loaded from mock-catalog.json in pages.
-- Infinite-scroll style loading (30 at a time).
-- Category filtering and broad search.
-- Product schema includes retailer, source and affiliateUrl.
-- If affiliateUrl exists, a subtle VIEW REAL ITEM button appears.
-- Delivery timing depends on product type.
-- Orders progress while you are away.
-- Notification centre + browser notifications where allowed.
-- Delivered items go into My Bag.
-- Returns refund 80% of the virtual price.
-- Current demo feed contains 240 placeholder records so the architecture can be tested before Awin feed approval.
-
-The production catalogue format expected by the app:
-{
-  "id": "unique-product-id",
-  "name": "Product title",
-  "price": 49.99,
-  "currency": "GBP",
-  "category": "Fashion",
-  "retailer": "Retailer Name",
-  "delivery": "today | tomorrow | local | later",
-  "image": "https://...",
-  "affiliateUrl": "https://...",
-  "source": "awin",
-  "tags": ["pink","trainers","fashion"]
-}
-
-When the first Awin programme is approved, the next step is to build an importer that maps its feed into this format. The UI should then work without a redesign.
-
-GitHub Pages:
-Upload all four web files together (index.html, styles.css, app.js, fallback-catalog.js, mock-catalog.json) to the repo root.
+NOTE: Holidays has no demo records yet. It is intentionally present so the navigation structure is ready for future travel feeds.

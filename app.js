@@ -17,6 +17,7 @@ async function loadCatalog(){
   }
   filtered=[...catalog];
   renderCategories();
+  renderDepartments();
   renderHome();
   renderShop();
   observeSentinel();
@@ -31,14 +32,7 @@ function addNotif(title,body){
 function requestNotifications(){
  try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch{}
 }
-function collectCheque(){
- const today=new Date().toISOString().slice(0,10);
- if(!state.welcome){
-   state.welcome=true;state.balance+=2500;addNotif("💌 Welcome cheque","£2,500 has been added to your Shopping Game balance.");toast("+£2,500 — GO BUY SOMETHING");persist();requestNotifications();return;
- }
- if(state.lastAllowance===today){toast("Today's cheque is already open.");return}
- state.lastAllowance=today;state.balance+=100;addNotif("💌 Daily shopping money","+£100 is waiting in your balance.");toast("+£100 — WHAT ARE WE BUYING?");persist();
-}
+function collectCheque(){openDailyDrop()}
 function categories(){return ["All",...Array.from(new Set(catalog.map(p=>p.category))).sort()]}
 function renderCategories(){
  const box=document.getElementById("chips");
@@ -48,8 +42,19 @@ function setCategory(c){activeCategory=c;visibleCount=PAGE_SIZE;applyFilters();r
 function applyFilters(){
  const q=(document.getElementById("shopSearch")?.value||"").trim().toLowerCase();
  filtered=catalog.filter(p=>{
-   const catOk=activeCategory==="All"||p.category===activeCategory;
+   let catOk=activeCategory==="All"||p.category===activeCategory;
+   if(activeCategory==="Sports") catOk=["Fitness","Sports","Fashion"].includes(p.category);
+   if(activeCategory==="Toys") catOk=["Toys","Gaming"].includes(p.category);
+   if(activeCategory==="Luxury") catOk=["Luxury","Property"].includes(p.category);
+   if(activeCategory==="Holidays") catOk=(p.category==="Holidays");
    if(!catOk)return false;
+   if(activeSubcategory!=="All"){
+     const subhay=(p.name+" "+(p.tags||[]).join(" ")).toLowerCase();
+     const token=activeSubcategory.toLowerCase();
+     const loose={"trainers":["nike","adidas","shoe","trainer"],"phones":["phone","galaxy","iphone"],"audio":["headphone","speaker"],"cameras":["camera","instax"],"wearables":["watch"],"kitchen":["coffee","mixer","kettle"],"tvs":["tv","oled"],"consoles":["playstation","xbox","steam"],"vr":["quest","vr"],"running":["nike","garmin","asics"],"watches":["watch","rolex","omega"],"yachts":["yacht"],"jets":["jet"],"property":["house","townhouse","island"]};
+     const terms=loose[token]||[token];
+     if(!terms.some(t=>subhay.includes(t)))return false;
+   }
    if(!q)return true;
    const hay=(p.name+" "+p.category+" "+p.retailer+" "+(p.tags||[]).join(" ")).toLowerCase();
    if(q==="cheap")return p.price<50;
@@ -95,7 +100,7 @@ function observeSentinel(){
  ob.observe(document.getElementById("sentinel"));
 }
 function searchHome(v){if(v.trim()){nav("shop",document.querySelectorAll(".nav button")[1]);document.getElementById("shopSearch").value=v;activeCategory="All";visibleCount=PAGE_SIZE;renderCategories();renderShop()}}
-function addToBasket(id){state.basket[id]=(state.basket[id]||0)+1;toast("🛒 Added to basket");persist();renderHome();renderShop();renderBasket()}
+function addToBasket(id){state.basket[id]=(state.basket[id]||0)+1;toast("🛒 BAGGED!");const nb=document.getElementById("navBasket");if(nb){nb.classList.remove("bump");void nb.offsetWidth;nb.classList.add("bump")}persist();renderHome();renderShop();renderBasket()}
 function productById(id){return catalog.find(p=>p.id===id)}
 function basketEntries(){return Object.entries(state.basket).filter(([,q])=>q>0).map(([id,q])=>({p:productById(id),q})).filter(x=>x.p)}
 function renderBasket(){
@@ -169,11 +174,7 @@ function openShop(){nav("shop",document.querySelectorAll(".nav button")[1])}
 function updateChrome(){
  document.getElementById("balance").textContent=money(state.balance);
  document.getElementById("navBasket").textContent=Object.values(state.basket).reduce((a,b)=>a+b,0)||"";
- const today=new Date().toISOString().slice(0,10);
- document.getElementById("chequeLabel").textContent=state.welcome?"DAILY SHOPPING ALLOWANCE":"WELCOME CHEQUE";
- document.getElementById("chequeAmount").textContent=state.welcome?"+£100":"£2,500";
- document.getElementById("chequeCopy").textContent=state.welcome?"Open it when you visit. Your money waits for you.":"Your first shopping fund. Spend it, save it, waste it on something brilliant.";
- document.getElementById("chequeBtn").textContent=!state.welcome?"OPEN CHEQUE":state.lastAllowance===today?"OPENED TODAY ✓":"OPEN TODAY'S £100";
+
  updateProfile();
 }
 function updateProfile(){
@@ -189,4 +190,4 @@ function tick(){
 function hash(s){return [...String(s)].reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0)&0x7fffffff}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
 function resetDemo(){if(confirm("Reset Shopping Game V4?")){localStorage.removeItem("sgv4");location.reload()}}
-document.addEventListener("DOMContentLoaded",()=>{updateChrome();renderBasket();renderOrders();renderOwned();loadCatalog();setInterval(tick,3000)});
+document.addEventListener("DOMContentLoaded",()=>{ensureDailyDrop();updateChrome();renderDailyDrop();renderBasket();renderOrders();renderOwned();loadCatalog().then?.(()=>renderDepartments());setTimeout(renderDepartments,150);setInterval(tick,3000)});
