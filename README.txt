@@ -1,16 +1,21 @@
-SHOPPING GAME V4.2
+SHOPPING GAME V4.2.1 — FIXED BUILD
 
-Interaction/game-feel update:
-- Daily money now arrives as a tappable envelope.
-- First-ever envelope gives the £2,500 welcome fund.
-- Subsequent daily drops are weighted: £100 (40%), £150 (25%), £200 (15%), £250 (10%), £300 (6%), £400 (3%), £500 (1%).
-- The day's result is stored before opening, so refreshing cannot reroll it.
-- Bigger drops get bigger reveal treatment.
-- Balance counts upward when the envelope opens.
-- After collection, the envelope disappears and leaves only a small collected status.
-- Added department navigation: Fashion, Tech, Home, Beauty, Gaming, Sports, Toys, Cars, Holidays and Luxury.
-- Added subcategory UI ready for real affiliate feed mapping.
-- Basket feedback made punchier.
-- V4.1 home flow and feed-ready catalogue architecture retained.
+Fixes a V4.2 JavaScript packaging bug that caused the catalogue to show 0 items.
 
-NOTE: Holidays has no demo records yet. It is intentionally present so the navigation structure is ready for future travel feeds.
+Includes:
+- First welcome envelope: £2,500
+- Daily Drop envelope after that
+- Weighted daily money: £100 40%, £150 25%, £200 15%, £250 10%, £300 6%, £400 3%, £500 1%
+- Daily amount is fixed for the day; refresh cannot reroll it
+- Envelope reveal + animated balance
+- Envelope collapses after collection
+- Department navigation + subcategories
+- V4.1 home flow
+- Feed-ready infinite catalogue
+- Basket/delivery/My Bag/returns
+
+UPLOAD:
+Upload index.html, app.js, styles.css, fallback-catalog.js and mock-catalog.json.
+README.txt is optional.
+
+The top bar visibly says V4.2 so you can confirm GitHub Pages has deployed the new build.

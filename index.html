@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="toprow"><div class="brand">SHOPPING GAME <span style="color:#999">V4</span></div><div class="right"><button class="circle" onclick="showNotifications()">🔔</button><div class="balance" id="balance">£0.00</div></div></div></header>
+<header class="top"><div class="toprow"><div class="brand">SHOPPING GAME <span style="color:#999">V4.2</span></div><div class="right"><button class="circle" onclick="showNotifications()">🔔</button><div class="balance" id="balance">£0.00</div></div></div></header>
 
 <main>
 <section id="home" class="view active">
@@ -25,9 +25,9 @@
 <div class="head"><h1>Shop</h1><span class="count" id="shopCount">0 items</span></div>
 <div class="search"><span class="mag">⌕</span><input id="shopSearch" placeholder="Search the catalogue…" oninput="visibleCount=PAGE_SIZE;renderShop()"><button class="clear" onclick="document.getElementById('shopSearch').value='';visibleCount=PAGE_SIZE;renderShop()">×</button></div>
 <div class="department-wrap">
-  <div class="department-title">Departments</div>
-  <div class="departments" id="departments"></div>
-  <div class="subcats" id="subcats"></div>
+<div class="department-title">Departments</div>
+<div class="departments" id="departments"></div>
+<div class="subcats" id="subcats"></div>
 </div>
 <div class="chips" id="chips" style="display:none"></div>
 <div id="shopFeed" class="feed"></div>

@@ -6,6 +6,121 @@ let state=JSON.parse(localStorage.getItem("sgv4")||"null")||{
  balance:0,welcome:false,lastAllowance:null,basket:{},orders:[],owned:[],spent:0,notifs:[],questCash:0
 };
 
+// V4.2 state fields - backwards compatible with existing localStorage.
+if(state.dailyDropDate===undefined) state.dailyDropDate=null;
+if(state.dailyDropAmount===undefined) state.dailyDropAmount=null;
+if(state.dailyDropClaimed===undefined) state.dailyDropClaimed=false;
+
+let activeSubcategory="All";
+
+const deptMap={
+ "All":["All"],
+ "Fashion":["All","Trainers","Clothing","Accessories","Bags"],
+ "Tech":["All","Phones","Computing","Audio","Cameras","Wearables"],
+ "Home":["All","Kitchen","Furniture","TVs","Appliances"],
+ "Beauty":["All","Hair","Skincare","Beauty tech"],
+ "Gaming":["All","Consoles","VR","Accessories"],
+ "Sports":["All","Running","Swimming","Outdoor"],
+ "Toys":["All","LEGO","Games","Gifts"],
+ "Cars":["All","Cars","Accessories"],
+ "Holidays":["All","Hotels","Flights","Experiences"],
+ "Luxury":["All","Watches","Yachts","Jets","Property"]
+};
+const deptIcons={"All":"✨","Fashion":"👟","Tech":"📱","Home":"🏠","Beauty":"💄","Gaming":"🎮","Sports":"🏃","Toys":"🧸","Cars":"🚗","Holidays":"✈️","Luxury":"💎"};
+
+function weightedDrop(){
+ const r=Math.random()*100;
+ if(r<40)return 100;
+ if(r<65)return 150;
+ if(r<80)return 200;
+ if(r<90)return 250;
+ if(r<96)return 300;
+ if(r<99)return 400;
+ return 500;
+}
+function ensureDailyDrop(){
+ const today=new Date().toISOString().slice(0,10);
+ if(state.dailyDropDate!==today){
+   state.dailyDropDate=today;
+   state.dailyDropAmount=weightedDrop();
+   state.dailyDropClaimed=false;
+   localStorage.setItem("sgv4",JSON.stringify(state));
+ }
+}
+function renderDailyDrop(){
+ ensureDailyDrop();
+ const m=document.getElementById("dailyDropMount");
+ if(!m)return;
+ if(state.dailyDropClaimed){
+   m.innerHTML=`<div class="claimed-note"><span>✓ Today's Daily Drop collected</span><b>+${money(state.dailyDropAmount)}</b></div>`;
+   return;
+ }
+ const first=!state.welcome;
+ m.innerHTML=`<div class="drop-wrap"><button class="envelope" onclick="openDailyDrop()">
+   <div class="env-icon">💌</div>
+   <div class="env-kicker">${first?"WELCOME DROP":"DAILY DROP"}</div>
+   <div class="env-title">${first?"Your first shopping fund":"You've got shopping money"}</div>
+   <div class="env-copy">Tap the envelope to see what's inside</div>
+ </button></div>`;
+}
+function openDailyDrop(){
+ ensureDailyDrop();
+ if(state.dailyDropClaimed)return;
+ const first=!state.welcome;
+ const amt=first?2500:state.dailyDropAmount;
+ if(first){state.welcome=true;state.dailyDropAmount=2500;}
+ state.dailyDropClaimed=true;
+ const before=state.balance;
+ state.balance+=amt;
+
+ const m=document.getElementById("dailyDropMount");
+ const cls=amt>=500?"jackpot":amt>=300?"big":"";
+ const label=first?"WELCOME FUND":amt>=500?"JACKPOT!":amt>=300?"BIG DROP!":"DAILY DROP";
+ m.innerHTML=`<div class="drop-reveal ${cls}">
+   <small>ENVELOPE OPENED</small>
+   <div class="amount">+${money(amt)}</div>
+   <div class="rarity">${label}</div>
+ </div>`;
+
+ addNotif("💌 Shopping money",`${money(amt)} has been added to your balance.`);
+ localStorage.setItem("sgv4",JSON.stringify(state));
+ animateBalance(before,state.balance,750);
+ requestNotifications();
+ setTimeout(()=>{renderDailyDrop();updateChrome()},1800);
+}
+function animateBalance(from,to,dur){
+ const el=document.getElementById("balance");
+ const start=performance.now();
+ function frame(now){
+   const t=Math.min(1,(now-start)/dur);
+   const eased=1-Math.pow(1-t,3);
+   el.textContent=money(from+(to-from)*eased);
+   if(t<1)requestAnimationFrame(frame);
+ }
+ requestAnimationFrame(frame);
+}
+function renderDepartments(){
+ const box=document.getElementById("departments");
+ if(!box)return;
+ const depts=["All","Fashion","Tech","Home","Beauty","Gaming","Sports","Toys","Cars","Holidays","Luxury"];
+ box.innerHTML=depts.map(d=>`<button class="dept ${activeCategory===d?"active":""}" onclick="setDepartment('${d}')">${deptIcons[d]} ${d}</button>`).join("");
+ renderSubcats();
+}
+function renderSubcats(){
+ const box=document.getElementById("subcats");
+ if(!box)return;
+ const ss=deptMap[activeCategory]||["All"];
+ box.innerHTML=ss.length<=1?"":ss.map(s=>`<button class="subcat ${activeSubcategory===s?"active":""}" onclick="setSubcategory('${s}')">${s}</button>`).join("");
+}
+function setDepartment(d){
+ activeCategory=d;activeSubcategory="All";visibleCount=PAGE_SIZE;
+ renderDepartments();renderShop();
+}
+function setSubcategory(s){
+ activeSubcategory=s;visibleCount=PAGE_SIZE;
+ renderSubcats();renderShop();
+}
+
 async function loadCatalog(){
   try{
     const r=await fetch("mock-catalog.json",{cache:"no-store"});
@@ -46,12 +161,29 @@ function applyFilters(){
    if(activeCategory==="Sports") catOk=["Fitness","Sports","Fashion"].includes(p.category);
    if(activeCategory==="Toys") catOk=["Toys","Gaming"].includes(p.category);
    if(activeCategory==="Luxury") catOk=["Luxury","Property"].includes(p.category);
-   if(activeCategory==="Holidays") catOk=(p.category==="Holidays");
+   if(activeCategory==="Holidays") catOk=p.category==="Holidays";
    if(!catOk)return false;
+
    if(activeSubcategory!=="All"){
      const subhay=(p.name+" "+(p.tags||[]).join(" ")).toLowerCase();
      const token=activeSubcategory.toLowerCase();
-     const loose={"trainers":["nike","adidas","shoe","trainer"],"phones":["phone","galaxy","iphone"],"audio":["headphone","speaker"],"cameras":["camera","instax"],"wearables":["watch"],"kitchen":["coffee","mixer","kettle"],"tvs":["tv","oled"],"consoles":["playstation","xbox","steam"],"vr":["quest","vr"],"running":["nike","garmin","asics"],"watches":["watch","rolex","omega"],"yachts":["yacht"],"jets":["jet"],"property":["house","townhouse","island"]};
+     const loose={
+       "trainers":["nike","adidas","shoe","trainer"],
+       "phones":["phone","galaxy","iphone"],
+       "computing":["macbook","computer","laptop","asus"],
+       "audio":["headphone","speaker","airpods"],
+       "cameras":["camera","instax","gopro"],
+       "wearables":["watch","garmin"],
+       "kitchen":["coffee","mixer","kettle"],
+       "tvs":["tv","oled"],
+       "consoles":["playstation","xbox","steam"],
+       "vr":["quest","vr"],
+       "running":["nike","garmin","asics"],
+       "watches":["watch","rolex","omega"],
+       "yachts":["yacht"],
+       "jets":["jet"],
+       "property":["house","townhouse","island"]
+     };
      const terms=loose[token]||[token];
      if(!terms.some(t=>subhay.includes(t)))return false;
    }
@@ -174,7 +306,6 @@ function openShop(){nav("shop",document.querySelectorAll(".nav button")[1])}
 function updateChrome(){
  document.getElementById("balance").textContent=money(state.balance);
  document.getElementById("navBasket").textContent=Object.values(state.basket).reduce((a,b)=>a+b,0)||"";
-
  updateProfile();
 }
 function updateProfile(){
@@ -190,4 +321,4 @@ function tick(){
 function hash(s){return [...String(s)].reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0)&0x7fffffff}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
 function resetDemo(){if(confirm("Reset Shopping Game V4?")){localStorage.removeItem("sgv4");location.reload()}}
-document.addEventListener("DOMContentLoaded",()=>{ensureDailyDrop();updateChrome();renderDailyDrop();renderBasket();renderOrders();renderOwned();loadCatalog().then?.(()=>renderDepartments());setTimeout(renderDepartments,150);setInterval(tick,3000)});
+document.addEventListener("DOMContentLoaded",()=>{ensureDailyDrop();updateChrome();renderDailyDrop();renderBasket();renderOrders();renderOwned();loadCatalog();setInterval(tick,3000)});
