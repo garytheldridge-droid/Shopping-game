@@ -14,9 +14,11 @@
 <main>
 <section id="home" class="view active">
 <div class="hero"><small id="chequeLabel">WELCOME CHEQUE</small><h1 id="chequeAmount">£2,500</h1><p id="chequeCopy">Your first shopping fund.</p><button class="primary" id="chequeBtn" onclick="collectCheque()">OPEN CHEQUE</button></div>
+<button class="shop-now" onclick="openShop()"><span>🛍️</span><span><small>YOUR MONEY IS READY</small>START SHOPPING</span><b>→</b></button>
 <div class="search"><span class="mag">⌕</span><input placeholder="Search anything… pink, gaming, cheap…" oninput="searchHome(this.value)"><button class="clear">→</button></div>
 <div class="section"><div class="sectionhead"><h2>🔥 Trending now</h2><button class="link" onclick="openShop()">See all</button></div><div id="homeFeed" class="feed"></div></div>
 <div class="section"><div class="sectionhead"><h2>🎯 Today's quests</h2><button class="link" onclick="openShop()">Shop</button></div><div id="quests"></div></div>
+<div class="section"><div class="sectionhead"><h2>✨ More for you</h2><button class="link" onclick="openShop()">Endless shop →</button></div><div id="moreFeed" class="feed"></div><button class="more-shop" onclick="openShop()">KEEP SHOPPING <span>→</span></button></div>
 </section>
 
 <section id="shop" class="view">

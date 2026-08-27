@@ -76,6 +76,7 @@ function productCard(p){
 function renderHome(){
  const home=document.getElementById("homeFeed");
  home.innerHTML=catalog.slice(0,8).map(productCard).join("");
+ const more=document.getElementById("moreFeed"); if(more) more.innerHTML=catalog.slice(12,20).map(productCard).join("");
  document.getElementById("quests").innerHTML=`
  <div class="quest"><div class="qicon">🌸</div><div class="qbody"><div class="qtitle">Sarah wants something pink</div><div class="qtext">“No idea what. Just find me something I'd actually want.”</div><div class="qreward">Reward £75</div></div></div>
  <div class="quest"><div class="qicon">🎮</div><div class="qbody"><div class="qtitle">Jamie's gaming night</div><div class="qtext">Budget £150. Build the best night you can without wasting it.</div><div class="qreward hot">🔥 3× reward today</div></div></div>

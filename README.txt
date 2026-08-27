@@ -1,3 +1,7 @@
+SHOPPING GAME V4.1
+
+Home-flow update: prominent START SHOPPING CTA, Trending, Quests, More for you, and another endless-shop CTA. Existing feed-ready V4 architecture retained.
+
 SHOPPING GAME V4 — FEED-READY PROTOTYPE
 
 What V4 changes:
