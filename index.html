@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="toprow"><div class="brand">SHOPPING GAME <span style="color:#999">V4.2</span></div><div class="right"><button class="circle" onclick="showNotifications()">🔔</button><div class="balance" id="balance">£0.00</div></div></div></header>
+<header class="top"><div class="toprow"><div class="brand">SHOPPING GAME <span style="color:#999">V4.3</span></div><div class="right"><button class="circle" onclick="showNotifications()">🔔</button><div class="balance" id="balance">£0.00</div></div></div></header>
 
 <main>
 <section id="home" class="view active">
@@ -50,7 +50,7 @@
 <button class="active" onclick="nav('home',this)"><span class="ico">🏠</span>Home</button>
 <button onclick="nav('shop',this)"><span class="ico">🛍️</span>Shop</button>
 <button onclick="nav('basket',this)"><span class="ico">🛒</span>Basket <span id="navBasket"></span></button>
-<button onclick="nav('orders',this)"><span class="ico">📦</span>Orders</button>
+<button id="navOrders" onclick="nav('orders',this)"><span class="ico">📦</span>Orders <span id="orderBadge" class="order-badge"></span></button>
 <button onclick="nav('me',this)"><span class="ico">👤</span>Me</button>
 </div></div>
 

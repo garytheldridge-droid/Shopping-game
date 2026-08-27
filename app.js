@@ -232,7 +232,7 @@ function observeSentinel(){
  ob.observe(document.getElementById("sentinel"));
 }
 function searchHome(v){if(v.trim()){nav("shop",document.querySelectorAll(".nav button")[1]);document.getElementById("shopSearch").value=v;activeCategory="All";visibleCount=PAGE_SIZE;renderCategories();renderShop()}}
-function addToBasket(id){state.basket[id]=(state.basket[id]||0)+1;toast("🛒 BAGGED!");const nb=document.getElementById("navBasket");if(nb){nb.classList.remove("bump");void nb.offsetWidth;nb.classList.add("bump")}persist();renderHome();renderShop();renderBasket()}
+function addToBasket(id){state.basket[id]=(state.basket[id]||0)+1;purchasePop("🛒 Added to basket");toast("🛒 BAGGED!");const nb=document.getElementById("navBasket");if(nb){nb.classList.remove("bump");void nb.offsetWidth;nb.classList.add("bump")}persist();renderHome();renderShop();renderBasket()}
 function productById(id){return catalog.find(p=>p.id===id)}
 function basketEntries(){return Object.entries(state.basket).filter(([,q])=>q>0).map(([id,q])=>({p:productById(id),q})).filter(x=>x.p)}
 function renderBasket(){
@@ -246,17 +246,27 @@ function renderBasket(){
 }
 function changeQty(id,d){state.basket[id]=(state.basket[id]||0)+d;if(state.basket[id]<=0)delete state.basket[id];persist();renderBasket();renderHome();renderShop()}
 function durationFor(items){
- if(items.some(x=>x.p.delivery==="local"))return 25000;
- if(items.some(x=>x.p.delivery==="later"))return 150000;
- if(items.some(x=>x.p.delivery==="tomorrow"))return 100000;
- return 60000;
+ const r=Math.random();
+ if(r<.45)return 20000;
+ if(r<.75)return 45000;
+ if(r<.93)return 90000;
+ return 120000;
 }
+function purchasePop(msg){const d=document.createElement("div");d.className="purchase-pop";d.innerHTML=`<span>${msg}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),850)}
+function timeLeft(o){const ms=Math.max(0,o.duration-(Date.now()-o.created));if(ms<=0)return "Ready now";const sec=Math.ceil(ms/1000);return sec<60?`${sec}s`: `${Math.ceil(sec/60)} min`;}
+function unopenedCount(){return state.orders.filter(o=>orderStatus(o)[1]===100&&!o.opened).length}
+function updateOrderBadge(){const e=document.getElementById("orderBadge");if(!e)return;const n=unopenedCount();e.textContent=n;e.classList.toggle("show",n>0)}
 function checkout(){
  const items=basketEntries();if(!items.length)return;
- const total=items.reduce((s,x)=>s+x.p.price*x.q,0);
+ const total=items.reduce((sum,x)=>sum+x.p.price*x.q,0);
  if(total>state.balance){toast(`You're ${money(total-state.balance)} short.`);return}
+ const before=state.balance;
  const o={id:Math.floor(10000+Math.random()*90000),created:Date.now(),duration:durationFor(items),total,items:items.map(x=>({id:x.p.id,q:x.q})),opened:false,arrivalNotified:false};
- state.balance-=total;state.spent+=total;state.orders.unshift(o);state.basket={};addNotif("💳 Order confirmed",`Order #${o.id} is being prepared.`);toast("ORDER CONFIRMED 🎉");persist();nav("orders",document.querySelectorAll(".nav button")[3]);
+ state.balance-=total;state.spent+=total;state.orders.unshift(o);state.basket={};
+ addNotif("💳 Order confirmed",`Order #${o.id} is being prepared.`);persist();renderBasket();renderHome();renderShop();
+ animateBalance(before,state.balance,700);document.getElementById("balance")?.classList.add("money-flash");
+ document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal();nav('orders',document.getElementById('navOrders'))">×</button><div class="checkout-stage"><div class="checkout-tick">✓</div><h2>ORDER PLACED</h2><div class="muted">That felt financially irresponsible.</div><div class="receipt"><small>ORDER #${o.id}</small><h3>${money(total)}</h3><div>📦 Estimated arrival: <b>${timeLeft(o)}</b></div></div><button class="primary" style="width:100%;margin-top:14px" onclick="closeModal();nav('orders',document.getElementById('navOrders'))">TRACK MY ORDER →</button></div>`;
+ document.getElementById("modal").classList.add("show");updateChrome();
 }
 function orderStatus(o){
  const pct=Math.min(1,(Date.now()-o.created)/o.duration);
@@ -267,19 +277,19 @@ function orderStatus(o){
 }
 function renderOrders(){
  const box=document.getElementById("orderList");
- if(!state.orders.length){box.innerHTML='<div class="empty"><b>No orders yet.</b>Your future parcels will appear here.</div>';return}
- box.innerHTML=state.orders.map(o=>{
-   const [s,p]=orderStatus(o);
-   return `<div class="order"><div class="orderhead"><span>Order #${o.id}</span><span>${money(o.total)}</span></div><div class="status">${s}</div><div class="progress"><div style="width:${p}%"></div></div><div class="muted" style="font-size:12px;margin-top:8px">${o.items.length} item${o.items.length===1?"":"s"} · ${p===100?"Ready to open":"We'll update you as it moves."}</div>${p===100&&!o.opened?`<button class="openpkg" onclick="openDelivery(${o.id})">🎁 OPEN DELIVERY</button>`:""}</div>`;
- }).join("");
+ if(!state.orders.length){box.innerHTML='<div class="empty"><b>No orders yet.</b>Your future parcels will appear here.</div>';updateOrderBadge();return}
+ box.innerHTML=state.orders.map(o=>{const [st,pct]=orderStatus(o);const ready=pct===100&&!o.opened;return `<div class="order ${ready?"ready":""}">${ready?'<div class="parcel">📦</div>':''}<div class="orderhead"><span>Order #${o.id}</span><span>${money(o.total)}</span></div><div class="status">${st}</div><div class="progress"><div style="width:${pct}%"></div></div><div class="delivery-count">${pct===100?(o.opened?"Opened":"Ready!"):timeLeft(o)}</div><div class="muted" style="font-size:12px;margin-top:5px">${o.items.reduce((a,x)=>a+x.q,0)} item${o.items.reduce((a,x)=>a+x.q,0)===1?"":"s"} · ${pct===100?(o.opened?"Added to your stuff":"Tap below to open it"):"Delivery is moving."}</div>${ready?`<button class="openpkg" onclick="openDelivery(${o.id})">📦 OPEN PARCEL</button>`:""}</div>`}).join("");updateOrderBadge();
 }
 function openDelivery(id){
  const o=state.orders.find(x=>x.id===id);if(!o||o.opened)return;
- o.opened=true;
- o.items.forEach(x=>{for(let i=0;i<x.q;i++)state.owned.push({id:x.id,added:Date.now()})});
- persist();renderOrders();renderOwned();
- document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal()">×</button><h2>📦 YOUR DELIVERY</h2><div class="notice"><small>ORDER #${o.id}</small><h2 style="margin:5px 0">IT'S HERE.</h2><div>${money(o.total)}</div></div>${o.items.map(x=>{const p=productById(x.id);return `<div class="owneditem"><img class="thumb" src="${p.image}"><div class="grow"><div class="bname">${escapeHtml(p.name)}</div><div class="muted">×${x.q}</div></div></div>`}).join("")}<button class="primary" style="width:100%;margin-top:12px" onclick="closeModal()">KEEP SHOPPING</button>`;
+ document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal()">×</button><div class="reveal-wrap"><small>ORDER #${o.id}</small><h2>Your parcel is here.</h2><div class="reveal-box" onclick="revealDelivery(${o.id})">📦</div><div class="reveal-hint">Tap the box to open it</div></div>`;
  document.getElementById("modal").classList.add("show");
+}
+function revealDelivery(id){
+ const o=state.orders.find(x=>x.id===id);if(!o||o.opened)return;o.opened=true;
+ o.items.forEach(x=>{for(let i=0;i<x.q;i++)state.owned.push({id:x.id,added:Date.now()})});persist();renderOrders();renderOwned();
+ const expensive=o.total>=5000;purchasePop(expensive?"✨ BIG DELIVERY!":"🎉 UNBOXED!");
+ document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal()">×</button><div class="reveal-items ${expensive?"rare-reveal":""}"><div style="text-align:center;font-size:48px">${expensive?"✨":"🎉"}</div><h2 style="text-align:center">${expensive?"BIG DELIVERY":"IT'S YOURS"}</h2>${o.items.map(x=>{const p=productById(x.id);return `<div class="owneditem"><img class="thumb" src="${p.image}"><div class="grow"><div class="bname">${escapeHtml(p.name)}</div><div class="muted">×${x.q} · Added to your stuff</div></div></div>`}).join("")}<button class="primary" style="width:100%;margin-top:12px" onclick="closeModal();nav('me',document.querySelectorAll('.nav button')[4])">SEE MY STUFF →</button></div>`;
 }
 function renderOwned(){
  const box=document.getElementById("ownedList");
@@ -305,6 +315,7 @@ function nav(id,btn){
 function openShop(){nav("shop",document.querySelectorAll(".nav button")[1])}
 function updateChrome(){
  document.getElementById("balance").textContent=money(state.balance);
+ updateOrderBadge();
  document.getElementById("navBasket").textContent=Object.values(state.basket).reduce((a,b)=>a+b,0)||"";
  updateProfile();
 }
@@ -315,7 +326,7 @@ function updateProfile(){
 function tick(){
  let changed=false;
  state.orders.forEach(o=>{if(!o.arrivalNotified && Date.now()-o.created>=o.duration){o.arrivalNotified=true;state.notifs.unshift({title:"🎁 Your package has arrived",body:`Order #${o.id} is ready to open.`,time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});changed=true;}});
- if(changed){localStorage.setItem("sgv4",JSON.stringify(state));updateChrome()}
+ if(changed){localStorage.setItem("sgv4",JSON.stringify(state));updateChrome();purchasePop("📦 Delivery arrived!")}
  if(document.getElementById("orders").classList.contains("active"))renderOrders();
 }
 function hash(s){return [...String(s)].reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0)&0x7fffffff}
