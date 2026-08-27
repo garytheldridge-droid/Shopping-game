@@ -1,21 +1,15 @@
-SHOPPING GAME V4.2.1 — FIXED BUILD
+SHOPPING GAME V4.4 — REQUESTS
 
-Fixes a V4.2 JavaScript packaging bug that caused the catalogue to show 0 items.
+Replaces the old loose quest cards with a proper Requests mini-game.
 
-Includes:
-- First welcome envelope: £2,500
-- Daily Drop envelope after that
-- Weighted daily money: £100 40%, £150 25%, £200 15%, £250 10%, £300 6%, £400 3%, £500 1%
-- Daily amount is fixed for the day; refresh cannot reroll it
-- Envelope reveal + animated balance
-- Envelope collapses after collection
-- Department navigation + subcategories
-- V4.1 home flow
-- Feed-ready infinite catalogue
-- Basket/delivery/My Bag/returns
+- Requests now have their own bottom-nav section.
+- Home only shows a compact current-request progress card.
+- Jamie has a five-item gaming-den request.
+- The target image collage begins heavily blurred and gets clearer with every correct purchase.
+- Each item has a clue; later clues are intentionally less explicit.
+- Correct checkout items trigger THAT'S ONE feedback and fill the heart/progress meter.
+- Completing all five awards £750 virtual money.
+- Wrong guesses are still normal purchases; nothing is lost.
+- Existing Daily Drop, catalogue, checkout, delivery timers, parcel opening and My Bag remain.
 
-UPLOAD:
-Upload index.html, app.js, styles.css, fallback-catalog.js and mock-catalog.json.
-README.txt is optional.
-
-The top bar visibly says V4.2 so you can confirm GitHub Pages has deployed the new build.
+Top bar says V4.4 when deployed.

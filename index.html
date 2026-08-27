@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="toprow"><div class="brand">SHOPPING GAME <span style="color:#999">V4.3</span></div><div class="right"><button class="circle" onclick="showNotifications()">🔔</button><div class="balance" id="balance">£0.00</div></div></div></header>
+<header class="top"><div class="toprow"><div class="brand">SHOPPING GAME <span style="color:#999">V4.4</span></div><div class="right"><button class="circle" onclick="showNotifications()">🔔</button><div class="balance" id="balance">£0.00</div></div></div></header>
 
 <main>
 <section id="home" class="view active">
@@ -17,7 +17,7 @@
 <button class="shop-now" onclick="openShop()"><span>🛍️</span><span><small>YOUR MONEY IS READY</small>START SHOPPING</span><b>→</b></button>
 <div class="search"><span class="mag">⌕</span><input placeholder="Search anything… pink, gaming, cheap…" oninput="searchHome(this.value)"><button class="clear">→</button></div>
 <div class="section"><div class="sectionhead"><h2>🔥 Trending now</h2><button class="link" onclick="openShop()">See all</button></div><div id="homeFeed" class="feed"></div></div>
-<div class="section"><div class="sectionhead"><h2>🎯 Today's quests</h2><button class="link" onclick="openShop()">Shop</button></div><div id="quests"></div></div>
+<div class="section"><div class="request-peek" onclick="openRequests()"><div class="request-peek-icon">❤️</div><div class="grow"><small>CURRENT REQUEST</small><b>Jamie's dream gaming den</b><div class="mini-progress"><div id="homeRequestBar"></div></div><span id="homeRequestText">0 / 5 found</span></div><strong>→</strong></div></div>
 <div class="section"><div class="sectionhead"><h2>✨ More for you</h2><button class="link" onclick="openShop()">Endless shop →</button></div><div id="moreFeed" class="feed"></div><button class="more-shop" onclick="openShop()">KEEP SHOPPING <span>→</span></button></div>
 </section>
 
@@ -34,6 +34,8 @@
 <div class="loader" id="loader">Keep scrolling…</div><div class="sentinel" id="sentinel"></div>
 </section>
 
+<section id="requests" class="view"><div class="head"><h1>Requests ❤️</h1><span class="count" id="requestCount">0 / 5</span></div><div id="requestGame"></div></section>
+
 <section id="basket" class="view"><div class="head"><h1>Your basket 🛒</h1></div><div id="basketList"></div><div id="basketTotal"></div></section>
 
 <section id="orders" class="view"><div class="head"><h1>Orders 📦</h1></div><div id="orderList"></div></section>
@@ -49,6 +51,7 @@
 <div class="bottom"><div class="nav">
 <button class="active" onclick="nav('home',this)"><span class="ico">🏠</span>Home</button>
 <button onclick="nav('shop',this)"><span class="ico">🛍️</span>Shop</button>
+<button onclick="nav('requests',this)"><span class="ico">❤️</span>Requests <span id="requestBadge"></span></button>
 <button onclick="nav('basket',this)"><span class="ico">🛒</span>Basket <span id="navBasket"></span></button>
 <button id="navOrders" onclick="nav('orders',this)"><span class="ico">📦</span>Orders <span id="orderBadge" class="order-badge"></span></button>
 <button onclick="nav('me',this)"><span class="ico">👤</span>Me</button>

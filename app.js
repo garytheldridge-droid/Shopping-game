@@ -10,6 +10,8 @@ let state=JSON.parse(localStorage.getItem("sgv4")||"null")||{
 if(state.dailyDropDate===undefined) state.dailyDropDate=null;
 if(state.dailyDropAmount===undefined) state.dailyDropAmount=null;
 if(state.dailyDropClaimed===undefined) state.dailyDropClaimed=false;
+if(!Array.isArray(state.requestFound)) state.requestFound=[];
+if(state.requestRewarded===undefined) state.requestRewarded=false;
 
 let activeSubcategory="All";
 
@@ -134,6 +136,7 @@ async function loadCatalog(){
   renderCategories();
   renderDepartments();
   renderHome();
+  renderRequests();
   renderShop();
   observeSentinel();
 }
@@ -210,14 +213,49 @@ function productCard(p){
    </div>
  </article>`;
 }
+
+const requestSlots=[
+ {key:"console",clue:"Something to play on",match:["playstation","xbox","console"]},
+ {key:"audio",clue:"Block out the rest of the world",match:["headphone","airpods"]},
+ {key:"chair",clue:"Somewhere to sit like a boss",match:["gaming chair","secretlab"]},
+ {key:"vr",clue:"Step inside the game",match:["quest 3"," vr","meta quest"]},
+ {key:"screen",clue:"Go BIG for the final piece",match:["oled"," tv","television"]}
+];
+function requestProgress(){return state.requestFound.length}
+function requestProductFor(slot){return catalog.find(p=>slot.match.some(t=>(" "+p.name.toLowerCase()).includes(t)))||catalog[0]}
+function renderRequestPeek(){
+ const n=requestProgress(),bar=document.getElementById("homeRequestBar"),tx=document.getElementById("homeRequestText");
+ if(bar)bar.style.width=`${n/5*100}%`;if(tx)tx.textContent=n>=5?"COMPLETE ❤️":`${n} / 5 found`;
+ const badge=document.getElementById("requestBadge");if(badge){badge.textContent=n?`${n}/5`:"";badge.className=n?"request-badge":""}
+}
+function renderRequests(){
+ const box=document.getElementById("requestGame");if(!box)return;
+ const n=requestProgress(), blur=Math.max(0,16-n*3.2), found=new Set(state.requestFound);
+ const imgs=requestSlots.map(s=>{const p=requestProductFor(s);return p?`<img src="${p.image}" style="filter:blur(${blur}px);transform:scale(${1+blur/80})">`:""}).join("");
+ const hearts=[0,1,2,3,4].map(i=>i<n?"❤️":"♡").join("");
+ box.innerHTML=`<div class="request-hero"><div class="customer"><div class="avatar">🎮</div><div><small>CUSTOMER REQUEST</small><h2>Jamie's dream gaming den</h2><p>“I know the vibe. I just can't explain it. Find the five things I'm thinking of.”</p></div></div><div class="mystery">${imgs}</div><div class="heartline">${hearts}</div><div class="request-progress"><div style="width:${n/5*100}%"></div></div></div>
+ <div class="request-list">${requestSlots.map((s,i)=>{const done=found.has(s.key),p=requestProductFor(s);return `<div class="request-slot ${done?"done":""}"><div class="slotpic ${done?"found":"locked"}">${p?`<img src="${p.image}">`:"?"}</div><div class="grow"><div class="slotnum">ITEM ${i+1} · ${done?"FOUND":"MYSTERY"}</div><div class="slotclue">${done?p.name:s.clue}</div><div class="slotstate">${done?"That's one! Jamie's picture is getting clearer.":i===0?"This one should be fairly easy.":i===4?"Final clue — this one's deliberately vague.":"Buy something you think matches."}</div></div></div>`}).join("")}</div>
+ <div class="request-reward"><div><b>Complete the request</b><div class="muted" style="font-size:12px">Find all five items</div></div><strong>+£750</strong></div>${n>=5?`<div class="request-complete"><div class="bigheart">❤️</div><h2>REQUEST COMPLETE!</h2><p>Jamie's setup is sorted.</p></div>`:""}`;
+ const count=document.getElementById("requestCount");if(count)count.textContent=`${n} / 5`;
+ renderRequestPeek();
+}
+function processRequestItems(items){
+ let hits=[];
+ for(const x of items){
+   const name=x.p.name.toLowerCase();
+   for(const s of requestSlots){if(!state.requestFound.includes(s.key)&&s.match.some(t=>(" "+name).includes(t))){state.requestFound.push(s.key);hits.push(s.key);break}}
+ }
+ if(hits.length){purchasePop(hits.length>1?`❤️ ${hits.length} REQUEST ITEMS!`:"❤️ THAT'S ONE!");addNotif("❤️ Request progress",`${state.requestFound.length}/5 items found for Jamie.`)}
+ if(state.requestFound.length>=5&&!state.requestRewarded){state.requestRewarded=true;state.balance+=750;state.questCash=(state.questCash||0)+750;addNotif("❤️ Request complete","Jamie loved it. £750 added to your balance.");setTimeout(()=>purchasePop("❤️ REQUEST COMPLETE · +£750"),900)}
+ renderRequestPeek();renderRequests();
+}
+function openRequests(){nav("requests",document.querySelectorAll(".nav button")[2])}
+
 function renderHome(){
  const home=document.getElementById("homeFeed");
  home.innerHTML=catalog.slice(0,8).map(productCard).join("");
  const more=document.getElementById("moreFeed"); if(more) more.innerHTML=catalog.slice(12,20).map(productCard).join("");
- document.getElementById("quests").innerHTML=`
- <div class="quest"><div class="qicon">🌸</div><div class="qbody"><div class="qtitle">Sarah wants something pink</div><div class="qtext">“No idea what. Just find me something I'd actually want.”</div><div class="qreward">Reward £75</div></div></div>
- <div class="quest"><div class="qicon">🎮</div><div class="qbody"><div class="qtitle">Jamie's gaming night</div><div class="qtext">Budget £150. Build the best night you can without wasting it.</div><div class="qreward hot">🔥 3× reward today</div></div></div>
- <div class="quest"><div class="qicon">🏊</div><div class="qbody"><div class="qtitle">Swimming trip</div><div class="qtext">Pick something useful, fun, or completely unnecessary for the pool.</div><div class="qreward">Reward £40</div></div></div>`;
+ renderRequestPeek();
 }
 function renderShop(){
  applyFilters();
@@ -263,7 +301,7 @@ function checkout(){
  const before=state.balance;
  const o={id:Math.floor(10000+Math.random()*90000),created:Date.now(),duration:durationFor(items),total,items:items.map(x=>({id:x.p.id,q:x.q})),opened:false,arrivalNotified:false};
  state.balance-=total;state.spent+=total;state.orders.unshift(o);state.basket={};
- addNotif("💳 Order confirmed",`Order #${o.id} is being prepared.`);persist();renderBasket();renderHome();renderShop();
+ addNotif("💳 Order confirmed",`Order #${o.id} is being prepared.`);processRequestItems(items);persist();renderBasket();renderHome();renderShop();
  animateBalance(before,state.balance,700);document.getElementById("balance")?.classList.add("money-flash");
  document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal();nav('orders',document.getElementById('navOrders'))">×</button><div class="checkout-stage"><div class="checkout-tick">✓</div><h2>ORDER PLACED</h2><div class="muted">That felt financially irresponsible.</div><div class="receipt"><small>ORDER #${o.id}</small><h3>${money(total)}</h3><div>📦 Estimated arrival: <b>${timeLeft(o)}</b></div></div><button class="primary" style="width:100%;margin-top:14px" onclick="closeModal();nav('orders',document.getElementById('navOrders'))">TRACK MY ORDER →</button></div>`;
  document.getElementById("modal").classList.add("show");updateChrome();
@@ -289,7 +327,7 @@ function revealDelivery(id){
  const o=state.orders.find(x=>x.id===id);if(!o||o.opened)return;o.opened=true;
  o.items.forEach(x=>{for(let i=0;i<x.q;i++)state.owned.push({id:x.id,added:Date.now()})});persist();renderOrders();renderOwned();
  const expensive=o.total>=5000;purchasePop(expensive?"✨ BIG DELIVERY!":"🎉 UNBOXED!");
- document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal()">×</button><div class="reveal-items ${expensive?"rare-reveal":""}"><div style="text-align:center;font-size:48px">${expensive?"✨":"🎉"}</div><h2 style="text-align:center">${expensive?"BIG DELIVERY":"IT'S YOURS"}</h2>${o.items.map(x=>{const p=productById(x.id);return `<div class="owneditem"><img class="thumb" src="${p.image}"><div class="grow"><div class="bname">${escapeHtml(p.name)}</div><div class="muted">×${x.q} · Added to your stuff</div></div></div>`}).join("")}<button class="primary" style="width:100%;margin-top:12px" onclick="closeModal();nav('me',document.querySelectorAll('.nav button')[4])">SEE MY STUFF →</button></div>`;
+ document.getElementById("sheet").innerHTML=`<button class="x" onclick="closeModal()">×</button><div class="reveal-items ${expensive?"rare-reveal":""}"><div style="text-align:center;font-size:48px">${expensive?"✨":"🎉"}</div><h2 style="text-align:center">${expensive?"BIG DELIVERY":"IT'S YOURS"}</h2>${o.items.map(x=>{const p=productById(x.id);return `<div class="owneditem"><img class="thumb" src="${p.image}"><div class="grow"><div class="bname">${escapeHtml(p.name)}</div><div class="muted">×${x.q} · Added to your stuff</div></div></div>`}).join("")}<button class="primary" style="width:100%;margin-top:12px" onclick="closeModal();nav('me',document.querySelectorAll('.nav button')[5])">SEE MY STUFF →</button></div>`;
 }
 function renderOwned(){
  const box=document.getElementById("ownedList");
@@ -309,7 +347,7 @@ function closeModal(){document.getElementById("modal").classList.remove("show")}
 function nav(id,btn){
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");
- if(id==="basket")renderBasket();if(id==="orders")renderOrders();if(id==="me"){renderOwned();updateProfile()}
+ if(id==="requests")renderRequests();if(id==="basket")renderBasket();if(id==="orders")renderOrders();if(id==="me"){renderOwned();updateProfile()}
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function openShop(){nav("shop",document.querySelectorAll(".nav button")[1])}
